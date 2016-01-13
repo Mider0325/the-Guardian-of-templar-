@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">]
+    <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main.css?v=1.0" />
+    <script type="text/javascript" src="http://webapi.amap.com/maps?v=1.3&key=779e2b5ba8a0b6ab15ab86f181cbc831"></script>
+    <script type="text/javascript" src="http://libs.baidu.com/jquery/1.9.0/jquery.js"></script>
+    <style type="text/css">
+        .autoclass{
+            width: 625px;
+            clear: both;
+            position: absolute;
+            z-index: 999999;
+        }
+    </style>
+    <script>
+        $(document).ready(function(){
+            var info = document.getElementById("info");
+            var map = new AMap.Map("mapContainer");
+            map.setCity('杭州市');
+            map.setZoom(14);
+//                    , {
+//                        // 设置中心点
+//                            center: [121.40991211, 31.26828053],
+//                        // 设置缩放级别
+//                            zoom: 12
+//                            }
+//            )
+//            ;
+            map.plugin(['AMap.ToolBar'], function() {
+                //设置地位标记为自定义标记
+                var toolBar = new AMap.ToolBar();
+                map.addControl(toolBar);
+            });
+            map.plugin(['AMap.MapType'],function(){
+                    //实现默认图层与卫星图、实施交通图层之间切换的控件
+                    var mapType = new AMap.MapType();
+                     map.addControl(mapType);
+            })
+            map.plugin(['AMap.PlaceSearch'],function(){
+
+                   var placeS = new AMap.PlaceSearch();
+                    map.addControl(placeS);
+            });
+            map.plugin(["AMap.Autocomplete"],function(){
+
+                        //判断是否是IE浏览器
+                        if(navigator.userAgent.indexOf("MSIE")>0){
+                            document.getElementById("keyword").onpropertychange = AutoSearch;
+                        }else{
+                            document.getElementById("keyword").oninput = AutoSearch;
+                        }
+                    }
+
+            );
+
+            function AutoSearch(){
+                   var keyword = document.getElementById("keyword");
+                    var auto;
+                     var autoOptions={
+                         pageIndex:1,
+                         pageSize:10,
+                         city:""//默认全国
+                }
+                auto = new AMap.Autocomplete(autoOptions);
+                AMap.addEventListener(auto,"complete",autocomplete_callBack);
+                auto.search(keyword);
+            }
+
+//            map.plugin('AMap.PlaceSearchLayer', function (){
+//                var searchLayer = new AMap.PlaceSearchLayer({
+//                    keywords : '超市' //搜索关键字为“超市”的poi
+//                });
+//                //将海量麻点叠加在地图上
+//                searchLayer.setMap(map);
+//                AMap.event.addListener(searchLayer, 'complete', 'complete', onComplete);
+//                AMap.event.addListener(searchLayer, 'click',onError);
+//            });
+
+//            map.plugin(['AMap.PlaceSearchLayer'],function(){
+//                var search = new AMap.PlaceSearchLayer();
+//                search.setKeywords("电影院");
+//                search.setMap(map);
+//                AMap.event.addListener(search, 'complete', 'complete', onComplete);
+//                map.addControl(placeS);
+//            });
+
+//            map.on( 'moveend', getCity);
+
+
+            //用来获取和展示用户主机所在的经纬度位置
+            map.plugin(['AMap.Geolocation'],function(){
+                   var geolocation = new AMap.Geolocation({
+                       enableHighAccuracy:true,  //是否使用高精度定位，默认:true
+                       convert:true,          //自动偏移坐标，偏移后的坐标为高德坐标，默认：true
+                       showMarker:true,      //定位成功后在定位到的位置显示点标记，默认：true
+                       timeout:2000, //超过20秒后停止定位，默认：无穷大
+                       maximumAge: 0,           //定位结果缓存0毫秒，默认：0
+                       showButton: true,        //显示定位按钮，默认：true
+                       buttonPosition: 'LB',    //定位按钮停靠位置，默认：'LB'，左下角
+                       planToLocation:true,    //定位成功后将定位到的位置作为地图中心点，默认：true
+                       buttonOffset: new AMap.Pixel(10, 20),//定位按钮与设置的停靠位置的偏移量，默认：Pixel(10, 20)
+                       showCircle: true,        //定位成功后用圆圈表示定位精度范围，默认：true
+                       zoomToAccuracy:true      //定位成功后调整地图视野范围使定位位置及精度范围视野内可见，默认：false
+                   });
+                map.addControl(geolocation);
+            })
+
+//            if(navigator.geolocation){
+//                navigator.geolocation.getCurrentPosition(showPosition,showError,{
+//                    // 指定获取地理位置的超时时间，默认不限时，单位为毫秒
+//                    'timeOut':1000,
+//                    // 指示浏览器获取高精度的位置，默认为false
+//                    'enableHighAccuracy':true,
+//                    // 最长有效期，在重复获取地理位置时，此参数指定多久再次获取位置。
+//                    'maximumAge':3000
+//                });
+//            }else{
+//                info.innerHTML="不支持定位功能";
+//            }
+
+//            function getCity() {
+//                map.getCity(function (data) {
+//                    if (data['province'] && typeof data['province'] === 'string') {
+//                        document.getElementById('info').innerHTML = '城市：' + (data['city'] || data['province']);
+//                    }
+//                });
+//            }
+
+//            function showPosition(position){
+//                alert("hI");
+//                var latitude = position.coords.latitude;
+//                var longitude = position.coords.longitude;
+//                alert(latitude+","+longitude);
+//                map.center=[latitude,longitude];
+//            }
+            function showError(error){
+                switch(error.code){
+                    case error.PERMISSION_DENIED:
+                          info.innerHTML="您拒绝了定位服务，请打开定位";
+                          break;
+                    case error.POSITION_UNAVAILABLE:
+                         info.innerHTML="Location information is unavailable."
+                    case error.TIMEOUT:
+                        info.innerHTML="The request to get user location timed out."
+                        break;
+                    case error.UNKNOWN_ERROR:
+                        info.innerHTML="An unknown error occurred."
+                        break;
+                    default:
+                         info.innerHTML ="错误："+error.code;
+                }
+            }
+       })
+
+    </script>
+    <style type="text/css">
+        #tip {
+            height: 45px;
+            background-color: #fff;
+            padding-left: 10px;
+            padding-right: 10px;
+            border: 1px solid #969696;
+            position: absolute;
+            font-size: 12px;
+            right: 10px;
+            bottom: 20px;
+            border-radius: 3px;
+            line-height: 45px;
+        }
+    </style>
+    <title>骑士守护者</title>
+</head>
+<body>
+
+<div id="info"></div>
+<div id="mapContainer"></div>
+<div class="autoclass">
+    <input type="text" id="keyword" name="keyword" value="" style="width: 95%;"/>
+    <div id="result1" class="autobox" name="result1"></div>
+</div>
+<div id="tip">
+    <div id="info">提醒</div>
+</div>
+</body>
+</html>
